@@ -15,7 +15,7 @@ buildscript {
 apply plugin: 'docker-compose'
 
 allprojects {
-    group = "io.eventuate.messaging.redis"
+    group = providers.gradleProperty("group").orElse("io.eventuate.messaging.redis").get()
 }
 apply plugin: "io.eventuate.plugins.gradle.publish.EventuatePublish"
 
@@ -57,5 +57,4 @@ dockerCompose {
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
-
 
