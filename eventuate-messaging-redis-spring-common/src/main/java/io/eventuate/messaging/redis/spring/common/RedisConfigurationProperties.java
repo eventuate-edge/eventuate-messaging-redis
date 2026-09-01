@@ -7,7 +7,7 @@ public class RedisConfigurationProperties {
   @Value("${eventuate.redis.servers:#{\"\"}}")
   private String servers;
 
-  @Value("${eventuate.redis.partitions}")
+  @Value("${eventuate.redis.partitions:2}")
   private int partitions;
 
   @Value("${eventuate.redis.group.member.ttl.in.milliseconds:#{10000}}")

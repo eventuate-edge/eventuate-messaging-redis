@@ -6,6 +6,7 @@ import io.eventuate.messaging.redis.spring.common.CommonRedisConfiguration;
 import io.eventuate.messaging.redis.spring.common.RedisConfigurationProperties;
 import io.eventuate.messaging.redis.spring.common.RedissonClients;
 import io.eventuate.messaging.redis.spring.leadership.RedisLeaderSelector;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -31,7 +32,7 @@ public class MessageConsumerRedisConfiguration {
   public CoordinatorFactory redisCoordinatorFactory(AssignmentManager assignmentManager,
                                                     AssignmentListenerFactory assignmentListenerFactory,
                                                     MemberGroupManagerFactory memberGroupManagerFactory,
-                                                    LeaderSelectorFactory leaderSelectorFactory,
+                                                    @Qualifier("leaderSelectorFactory") LeaderSelectorFactory leaderSelectorFactory,
                                                     GroupMemberFactory groupMemberFactory,
                                                     RedisConfigurationProperties redisConfigurationProperties) {
     return new CoordinatorFactoryImpl(assignmentManager,
