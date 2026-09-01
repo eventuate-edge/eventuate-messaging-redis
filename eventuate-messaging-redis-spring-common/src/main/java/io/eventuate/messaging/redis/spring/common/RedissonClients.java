@@ -15,6 +15,10 @@ public class RedissonClients {
   private RedisServers redisServers;
   private List<RedissonClient> redissonClients;
 
+  public RedissonClients(RedissonClient redissonClient) {
+    this.redissonClients = List.of(redissonClient);
+  }
+
   public RedissonClients(RedisServers redisServers) {
     this.redisServers = redisServers;
 

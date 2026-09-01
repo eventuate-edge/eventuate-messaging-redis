@@ -3,7 +3,6 @@ package io.eventuate.messaging.redis.spring.leadership;
 import io.eventuate.coordination.leadership.EventuateLeaderSelector;
 import io.eventuate.coordination.leadership.LeaderSelectedCallback;
 import io.eventuate.messaging.redis.spring.common.RedissonClients;
-import org.redisson.RedissonRedLock;
 import org.redisson.api.RLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class RedisLeaderSelector implements EventuateLeaderSelector {
   private Logger logger = LoggerFactory.getLogger(getClass());
@@ -22,7 +20,7 @@ public class RedisLeaderSelector implements EventuateLeaderSelector {
   private long lockTimeInMilliseconds;
   private LeaderSelectedCallback leaderSelectedCallback;
   private Runnable leaderRemovedCallback;
-  private RedissonRedLock lock;
+  private RLock lock;
   private volatile boolean locked = false;
   private Timer timer = new Timer();
   private volatile boolean stopping = false;
@@ -61,7 +59,7 @@ public class RedisLeaderSelector implements EventuateLeaderSelector {
 
   @Override
   public void start() {
-    createRedLock();
+    createLock();
     scheduleLocking();
   }
 
@@ -80,15 +78,9 @@ public class RedisLeaderSelector implements EventuateLeaderSelector {
     stoppingRefreshing = true;
   }
 
-  private void createRedLock() {
+  private void createLock() {
 
-    List<RLock> locks = redissonClients
-            .getRedissonClients()
-            .stream()
-            .map(rc -> rc.getLock(lockId))
-            .collect(Collectors.toList());
-
-    lock = new RedissonRedLock(locks.toArray(new RLock[]{}));
+    lock = redissonClients.getRedissonClients().get(0).getLock(lockId);
   }
 
   private void scheduleLocking() {
