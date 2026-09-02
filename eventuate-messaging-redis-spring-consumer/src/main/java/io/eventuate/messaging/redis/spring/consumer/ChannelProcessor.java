@@ -4,6 +4,7 @@ import io.lettuce.core.RedisCommandExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -157,7 +158,14 @@ public class ChannelProcessor {
       throw t;
     }
 
-    redisTemplate.opsForStream().acknowledge(channel, subscriberId, recordId);
+    // Redis 8.2+ atomically acknowledges the record for this consumer group and
+    // deletes it only when no consumer group still references it.
+    redisTemplate.opsForStream().acknowledgeAndDelete(
+            channel,
+            subscriberId,
+            RedisStreamCommands.XDelOptions.deletionPolicy(
+                    RedisStreamCommands.StreamDeletionPolicy.ACKNOWLEDGED),
+            recordId);
   }
 
   private List<MapRecord<String, Object, Object>> getPendingRecords() {
