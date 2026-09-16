@@ -9,8 +9,8 @@ public class RedisConfigurationProperties {
 
   @Value("${eventuate.redis.partitions:2}")
   private int partitions;
-  @Value("${eventuate.redis.streams.without-consumer-balance-max-len:0}")
-  private int streamWithoutConsumerBalanceMaxLen;
+  @Value("${eventuate.redis.streams.without-consumer-balance-max-len:#{0}}")
+  private long streamWithoutConsumerBalanceMaxLen;
 
   @Value("${eventuate.redis.group.member.ttl.in.milliseconds:#{10000}}")
   private long groupMemberTtlInMilliseconds;

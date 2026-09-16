@@ -16,12 +16,12 @@ public class EventuateRedisProducer {
 
   private StringRedisTemplate redisTemplate;
   private int partitions;
-  private int streamWithoutConsumerBalanceMaxLen;
+  private long streamWithoutConsumerBalanceMaxLen;
 
   public EventuateRedisProducer(StringRedisTemplate redisTemplate, int partitions) {
     this.redisTemplate = redisTemplate;
     this.partitions = partitions;
-    this.streamWithoutConsumerBalanceMaxLen = Integer.parseInt(System.getProperty("eventuate.redis.streams.without-consumer-balance-max-len", "0"));
+    this.streamWithoutConsumerBalanceMaxLen = Long.parseLong(System.getProperty("eventuate.redis.streams.without-consumer-balance-max-len", "0"));
   }
 
   public CompletableFuture<?> send(String topic, String key, String body) {
