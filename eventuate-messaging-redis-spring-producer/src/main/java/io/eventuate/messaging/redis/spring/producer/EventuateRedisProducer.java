@@ -1,7 +1,6 @@
 package io.eventuate.messaging.redis.spring.producer;
 
 import io.eventuate.messaging.redis.spring.common.RedisUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.stream.StreamRecords;
@@ -10,7 +9,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class EventuateRedisProducer {
@@ -18,16 +16,12 @@ public class EventuateRedisProducer {
 
   private StringRedisTemplate redisTemplate;
   private int partitions;
-  private int withoutConsumerBalanceMaxLen;
+  private int streamWithoutConsumerBalanceMaxLen;
 
   public EventuateRedisProducer(StringRedisTemplate redisTemplate, int partitions) {
     this.redisTemplate = redisTemplate;
     this.partitions = partitions;
-    this.withoutConsumerBalanceMaxLen = Optional.ofNullable(redisTemplate.opsForValue().get("eventuate-tram:config:stream-without-consumer-maxlen"))
-            .filter(StringUtils::isNumeric)
-            .map(Integer::parseInt)
-            .filter(value -> value > 0)
-            .orElse(0);
+    this.streamWithoutConsumerBalanceMaxLen = Integer.parseInt(System.getProperty("eventuate.redis.streams.without-consumer-balance-max-len", "0"));
   }
 
   public CompletableFuture<?> send(String topic, String key, String body) {
@@ -37,8 +31,8 @@ public class EventuateRedisProducer {
 
     String streamKey = RedisUtil.channelToRedisStream(topic, partition);
     RedisStreamCommands.XAddOptions options = RedisStreamCommands.XAddOptions.none();
-    if (withoutConsumerBalanceMaxLen > 0 && redisTemplate.opsForStream().groups(streamKey).isEmpty()) {
-      options = RedisStreamCommands.XAddOptions.maxlen(withoutConsumerBalanceMaxLen);
+    if (streamWithoutConsumerBalanceMaxLen > 0 && redisTemplate.opsForStream().groups(streamKey).isEmpty()) {
+      options = RedisStreamCommands.XAddOptions.maxlen(streamWithoutConsumerBalanceMaxLen);
     }
     redisTemplate.opsForStream().add(StreamRecords
             .string(Collections.singletonMap(key, body))
