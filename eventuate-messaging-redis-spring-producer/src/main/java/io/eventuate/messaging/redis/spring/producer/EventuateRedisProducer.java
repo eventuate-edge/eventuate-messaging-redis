@@ -3,6 +3,7 @@ package io.eventuate.messaging.redis.spring.producer;
 import io.eventuate.messaging.redis.spring.common.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,7 +32,7 @@ public class EventuateRedisProducer {
 
     String streamKey = RedisUtil.channelToRedisStream(topic, partition);
     RedisStreamCommands.XAddOptions options = RedisStreamCommands.XAddOptions.none();
-    if (streamWithoutConsumerBalanceMaxLen > 0 && redisTemplate.opsForStream().groups(streamKey).isEmpty()) {
+    if (streamWithoutConsumerBalanceMaxLen > 0 && !hasConsumerGroups(streamKey)) {
       options = RedisStreamCommands.XAddOptions.maxlen(streamWithoutConsumerBalanceMaxLen);
     }
     redisTemplate.opsForStream().add(StreamRecords
@@ -44,5 +45,21 @@ public class EventuateRedisProducer {
   }
 
   public void close() {
+  }
+
+  private boolean hasConsumerGroups(String streamKey) {
+    try {
+      return !redisTemplate.opsForStream().groups(streamKey).isEmpty();
+    } catch (RedisSystemException e) {
+      Throwable cause = e;
+      while (cause != null) {
+        if (cause.getMessage() != null
+                && cause.getMessage().contains("no such key")) {
+          return false;
+        }
+        cause = cause.getCause();
+      }
+      throw e;
+    }
   }
 }
